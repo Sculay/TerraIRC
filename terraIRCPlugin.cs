@@ -21,8 +21,8 @@ namespace Terraria
         public int port = 6667;
         public string authtype = "none";
         public string authpass = "none";
-        public string nickname = "terrapwn";
-        public string username = "terrawpwn pwns";
+        public string nickname = "Pwnaria";
+        public string username = "terra.pwncraft.net";
         public string channel = "#pwncraft";
         private Thread irc;
         public override void Initialize()
@@ -31,29 +31,18 @@ namespace Terraria
             pluginDescription = "Terraria <-> IRC link bot";
             pluginAuthor = "PwnCraft";
             pluginVersion = "v1.0";
-
-            this.registerHook(Hook.PLAYER_COMMAND);
             this.registerHook(Hook.PLAYER_CHAT);
+            this.registerHook(Hook.PLAYER_DEATH);
+            this.registerHook(Hook.PLAYER_JOIN);
             //loadSettings();
+            this.irc = new Thread(new ThreadStart(startIRC));
+            this.irc.Start();
             Console.WriteLine("Connecting to " + server + ":" + port);
-            
             Console.WriteLine("[TerraIRC] " + pluginVersion + " loaded!");
         }
         public void startIRC()
         {
             IRC.connect(server, port, authtype, authpass, nickname, username, channel);
-        }
-        public override void onPlayerCommand(CommandEvent ev)
-        {
-            base.onPlayerCommand(ev);
-            Player p = ev.getPlayer();
-            string[] cmda = ev.getCommandArray();
-            if (cmda[0] == "/irc")
-            {
-                this.irc = new Thread(new ThreadStart(startIRC));
-                this.irc.Start();
-                p.sendMessage("irc started!");
-            }
         }
         public override void onPlayerChat(ChatEvent ev)
         {
@@ -62,10 +51,22 @@ namespace Terraria
             string text = ev.getChat();
             IRC.send("PRIVMSG #pwncraft :(" + p + ") " + text);
         }
+        public override void onPlayerDeath(PlayerEvent ev)
+        {
+            base.onPlayerDeath(ev);
+            string p = ev.getPlayer().name;
+            IRC.send("PRIVMSG #pwncraft :" + p + " was slain..");
+        }
         public override void Unload()
         {
             irc.Suspend();
             Console.WriteLine("[TerraIRC] Unloaded :(");
+        }
+        public override void onPlayerJoin(PlayerEvent ev)
+        {
+            base.onPlayerJoin(ev);
+            string p = ev.getPlayer().name;
+            IRC.send("PRIVMSG #pwncraft :[" + p +" connected]");
         }
         public void loadSettings()
         {
@@ -120,6 +121,8 @@ namespace Terraria
         }
         public static void connect(string server, int port, string authtype, string authpass, string nick, string user, string channel)
         {
+            char meme;
+            meme = Convert.ToChar(1);
             NetworkStream stream;
             TcpClient irc;
             string inputLine;
@@ -141,7 +144,7 @@ namespace Terraria
                     while ((inputLine = reader.ReadLine()) != null)
                     {
                         string[] arr = inputLine.Split(' ');
-                        Console.WriteLine(inputLine);
+                        //Console.WriteLine(inputLine);
                         if (arr[1] == "376")
                         {
                             send("JOIN " + channel);
@@ -162,19 +165,21 @@ namespace Terraria
                         }
                         else if ((arr[1] == "PRIVMSG") && (arr[2].ToLower() == channel.ToLower())) 
                         {
-
-                            Console.WriteLine("UH");
                             Regex text = new Regex(@":(.*) PRIVMSG (.*) :(.*)");
                             Match match = text.Match(inputLine);
                             if (match.Success)
                             {
                                 //get nick
                                 nickname = inputLine.Substring(1, inputLine.IndexOf("!") - 1);
-                                foreach (Player p in Main.player)
+                                if (nickname.ToLower() != "pwnsurvival")
                                 {
-                                    if (p.name.Length > 0)
+                                    foreach (Player p in Main.player)
                                     {
-                                        p.sendMessage("[IRC]<" + nickname + "> " + match.Groups[3].Value);
+                                        if (p.name.Length > 0)
+                                        {
+                                            string message = "[IRC]<" + nickname + "> " + match.Groups[3].Value;
+                                            p.sendMessage(message.Replace(meme, '*'));
+                                        }
                                     }
                                 }
                             }
@@ -191,8 +196,8 @@ namespace Terraria
                 // Show the exception, sleep for a while and try to establish a new connection to irc server
                 Console.WriteLine(e.ToString());
 
-                string[] argv = { };
-                connect(argv[0], int.Parse(argv[1]), argv[2], argv[3], argv[4], argv[5], argv[6]);
+                /*string[] argv = { };
+                connect(argv[0], int.Parse(argv[1]), argv[2], argv[3], argv[4], argv[5], argv[6]);*/
 
             }
         }
