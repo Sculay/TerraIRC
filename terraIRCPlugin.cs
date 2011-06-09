@@ -60,6 +60,7 @@ namespace Terraria
         public override void Unload()
         {
             irc.Suspend();
+            IRC.send("QUIT :Unloaded!");
             Console.WriteLine("[TerraIRC] Unloaded :(");
         }
         public override void onPlayerJoin(PlayerEvent ev)
