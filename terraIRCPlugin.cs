@@ -30,7 +30,7 @@ namespace Terraria
             pluginName = "TerraIRC";
             pluginDescription = "Terraria <-> IRC link bot";
             pluginAuthor = "PwnCraft";
-            pluginVersion = "v1.0";
+            pluginVersion = "v1.0.2";
             this.registerHook(Hook.PLAYER_CHAT);
             this.registerHook(Hook.PLAYER_DEATH);
             this.registerHook(Hook.PLAYER_JOIN);
@@ -49,13 +49,13 @@ namespace Terraria
             base.onPlayerChat(ev);
             string p = ev.getPlayer().name;
             string text = ev.getChat();
-            IRC.send("PRIVMSG #pwncraft :(" + p + ") " + text);
+            IRC.send("PRIVMSG " + channel + " :(" + p + ") " + text);
         }
         public override void onPlayerDeath(PlayerEvent ev)
         {
             base.onPlayerDeath(ev);
             string p = ev.getPlayer().name;
-            IRC.send("PRIVMSG #pwncraft :" + p + " was slain..");
+            IRC.send("PRIVMSG " + channel + " :" + p + " was slain..");
         }
         public override void Unload()
         {
@@ -68,7 +68,7 @@ namespace Terraria
             base.onPlayerJoin(ev);
 
             string p = ev.getPlayer().name;
-            IRC.send("PRIVMSG #pwncraft :[" + p +" connected]");
+            IRC.send("PRIVMSG " + channel + " :[" + p +" connected]");
         }
         public void loadSettings()
         {
@@ -178,9 +178,25 @@ namespace Terraria
                             nickname = inputLine.Substring(1, inputLine.IndexOf("!") - 1);
                             foreach (Player p in Main.player)
                             {
-                                p.sendMessage("[IRC]<" + nickname + "> has joined IRC");
+                                if (p.name.Length > 0)
+                                {
+                                    p.sendMessage("[IRC]<" + nickname + "> has joined IRC");
+                                }
                             }
                             
+                        }
+                        else if (inputLine.EndsWith("PART :" + channel))
+                        {
+                            //get nick
+                            nickname = inputLine.Substring(1, inputLine.IndexOf("!") - 1);
+                            foreach (Player p in Main.player)
+                            {
+                                if (p.name.Length > 0)
+                                {
+                                    p.sendMessage("[IRC]<" + nickname + "> has left IRC");
+                                }
+                            }
+
                         }
                         else if (inputLine.StartsWith("PING"))
                         {
