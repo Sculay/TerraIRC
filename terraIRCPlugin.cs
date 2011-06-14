@@ -7,12 +7,17 @@ using System.Net;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
+using Microsoft.Xna.Framework;
+using Terraria;
+using TerrariaAPI;
+using TerrariaAPI.Hooks;
 
-namespace Terraria
+namespace TerraIRC
 {
-    class TerraIRC : Plugin
+    public class TerraIRC : TerrariaPlugin
     {
-        // Settings
+	
+	    // Settings
         public Dictionary<string, string> settings;
         public string settingsPath = "terrairc.txt";
 
@@ -25,51 +30,85 @@ namespace Terraria
         public string username;
         public string channel;
         private Thread irc;
-        public override void Initialize()
+	
+	public override string Name
         {
-            pluginName = "TerraIRC";
-            pluginDescription = "Terraria <-> IRC link bot";
-            pluginAuthor = "PwnCraft";
-            pluginVersion = "v1.0.2";
-            this.registerHook(Hook.PLAYER_CHAT);
-            this.registerHook(Hook.PLAYER_DEATH);
-            this.registerHook(Hook.PLAYER_JOIN);
-            loadSettings();
+            get { return "TerraIRC"; }
+        }
+
+        public override Version Version
+        {
+            get { return new Version(1, 0, 2); }
+        }
+
+        public override Version APIVersion
+        {
+            get { return new Version(1, 2); }
+        }
+
+        public override string Author
+        {
+            get { return "PwnCraft"; }
+        }
+
+        public override string Description
+        {
+            get { return "Terraria <-> IRC link bot"; }
+        }
+
+        public TerraIRC(Main game)
+            : base(game)
+        {
+        }
+		
+		public override void Initialize()
+        {
+            ServerHooks.Chat += OnChat;
+            ServerHooks.Join += OnJoin;
+			ServerHooks.Leave += OnLeave;
+			loadSettings();
             this.irc = new Thread(new ThreadStart(startIRC));
             this.irc.Start();
             Console.WriteLine("Connecting to " + server + ":" + port);
-            Console.WriteLine("[TerraIRC] " + pluginVersion + " loaded!");
+            Console.WriteLine("[TerraIRC] " + Version + " loaded!");
         }
+
+        public override void DeInitialize()
+        {
+			ServerHooks.Chat -= OnChat;
+            ServerHooks.Join -= OnJoin;
+			ServerHooks.Leave -= OnLeave;
+			irc.Suspend();
+            IRC.send("QUIT :Unloaded!");
+            Console.WriteLine("[TerraIRC] Unloaded :(");
+        }
+		
         public void startIRC()
         {
             IRC.connect(server, port, authtype, authpass, nickname, username, channel);
         }
-        public override void onPlayerChat(ChatEvent ev)
+		
+        private void OnChat(messageBuffer msg, int ply, string text, HandledEventArgs e)
         {
-            base.onPlayerChat(ev);
-            string p = ev.getPlayer().name;
-            string text = ev.getChat();
-            IRC.send("PRIVMSG " + channel + " :(" + p + ") " + text);
+			string p = Main.player[ply].name;
+            IRC.send("PRIVMSG " + channel + " :(" + p + ") " + msg);
+			e.Handled = true;
         }
-        public override void onPlayerDeath(PlayerEvent ev)
-        {
-            base.onPlayerDeath(ev);
-            string p = ev.getPlayer().name;
-            IRC.send("PRIVMSG " + channel + " :" + p + " was slain..");
-        }
-        public override void Unload()
-        {
-            irc.Suspend();
-            IRC.send("QUIT :Unloaded!");
-            Console.WriteLine("[TerraIRC] Unloaded :(");
-        }
-        public override void onPlayerJoin(PlayerEvent ev)
-        {
-            base.onPlayerJoin(ev);
-
-            string p = ev.getPlayer().name;
+		
+        //public override void onPlayerDeath(PlayerEvent ev)
+        //{
+        //    base.onPlayerDeath(ev);
+        //    string p = ev.getPlayer().name;
+        //    IRC.send("PRIVMSG " + channel + " :" + p + " was slain..");
+        //}
+		
+		private void OnJoin(int ply, HandledEventArgs handler)
+        {				
+            string p = Main.player[ply].name;
             IRC.send("PRIVMSG " + channel + " :[" + p +" connected]");
+			handler.Handled = true;
         }
+		
         public void loadSettings()
         {
             this.settings = new Dictionary<string, string>();
