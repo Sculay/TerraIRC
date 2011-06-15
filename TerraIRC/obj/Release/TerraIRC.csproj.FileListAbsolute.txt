@@ -1,0 +1,8 @@
+C:\Users\Kyle\AppData\Local\Temporary Projects\TerraIRC\obj\Release\ResolveAssemblyReference.cache
+C:\Users\Kyle\Developer\TerraIRC\TerraIRC\obj\Release\ResolveAssemblyReference.cache
+C:\Users\Kyle\Developer\TerraIRC\TerraIRC\bin\Release\TerraIRC.dll
+C:\Users\Kyle\Developer\TerraIRC\TerraIRC\bin\Release\TerraIRC.pdb
+C:\Users\Kyle\Developer\TerraIRC\TerraIRC\bin\Release\TerrariaServer.exe
+C:\Users\Kyle\Developer\TerraIRC\TerraIRC\bin\Release\TerrariaServerAPI.dll
+C:\Users\Kyle\Developer\TerraIRC\TerraIRC\obj\Release\TerraIRC.dll
+C:\Users\Kyle\Developer\TerraIRC\TerraIRC\obj\Release\TerraIRC.pdb

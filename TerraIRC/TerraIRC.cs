@@ -8,16 +8,17 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Terraria;
 using TerrariaAPI;
 using TerrariaAPI.Hooks;
 
 namespace TerraIRC
 {
+    [APIVersion(1, 3)]
     public class TerraIRC : TerrariaPlugin
     {
-	
-	    // Settings
+        // Settings
         public Dictionary<string, string> settings;
         public string settingsPath = "terrairc.txt";
 
@@ -30,8 +31,8 @@ namespace TerraIRC
         public string username;
         public string channel;
         private Thread irc;
-	
-	public override string Name
+
+        public override string Name
         {
             get { return "TerraIRC"; }
         }
@@ -39,11 +40,6 @@ namespace TerraIRC
         public override Version Version
         {
             get { return new Version(1, 0, 2); }
-        }
-
-        public override Version APIVersion
-        {
-            get { return new Version(1, 2); }
         }
 
         public override string Author
@@ -60,13 +56,13 @@ namespace TerraIRC
             : base(game)
         {
         }
-		
-		public override void Initialize()
+
+        public override void Initialize()
         {
             ServerHooks.Chat += OnChat;
-            ServerHooks.Join += OnJoin;
-			ServerHooks.Leave += OnLeave;
-			loadSettings();
+            NetHooks.GreetPlayer += OnGreetPlayer;
+            ServerHooks.Leave += OnLeave;
+            loadSettings();
             this.irc = new Thread(new ThreadStart(startIRC));
             this.irc.Start();
             Console.WriteLine("Connecting to " + server + ":" + port);
@@ -75,40 +71,44 @@ namespace TerraIRC
 
         public override void DeInitialize()
         {
-			ServerHooks.Chat -= OnChat;
-            ServerHooks.Join -= OnJoin;
-			ServerHooks.Leave -= OnLeave;
-			irc.Suspend();
+            ServerHooks.Chat -= OnChat;
+            NetHooks.GreetPlayer -= OnGreetPlayer;
+            ServerHooks.Leave -= OnLeave;
             IRC.send("QUIT :Unloaded!");
+            irc.Abort();
             Console.WriteLine("[TerraIRC] Unloaded :(");
         }
-		
+
         public void startIRC()
         {
             IRC.connect(server, port, authtype, authpass, nickname, username, channel);
         }
-		
+
         private void OnChat(messageBuffer msg, int ply, string text, HandledEventArgs e)
         {
-			string p = Main.player[ply].name;
-            IRC.send("PRIVMSG " + channel + " :(" + p + ") " + msg);
-			e.Handled = true;
+            string p = Main.player[ply].name;
+            IRC.send("PRIVMSG " + channel + " :(" + p + ") " + text);
         }
-		
+
         //public override void onPlayerDeath(PlayerEvent ev)
         //{
         //    base.onPlayerDeath(ev);
         //    string p = ev.getPlayer().name;
         //    IRC.send("PRIVMSG " + channel + " :" + p + " was slain..");
         //}
-		
-		private void OnJoin(int ply, HandledEventArgs handler)
-        {				
-            string p = Main.player[ply].name;
-            IRC.send("PRIVMSG " + channel + " :[" + p +" connected]");
-			handler.Handled = true;
+
+        private void OnGreetPlayer(int who, HandledEventArgs e)
+        {
+            string p = Main.player[who].name;
+            IRC.send("PRIVMSG " + channel + " :[" + p + " connected]");
         }
-		
+
+        private void OnLeave(int who)
+        {
+            string p = Main.player[who].name;
+            IRC.send("PRIVMSG " + channel + " :[" + p + " disconnected]");
+        }
+
         public void loadSettings()
         {
             this.settings = new Dictionary<string, string>();
@@ -162,25 +162,7 @@ namespace TerraIRC
             writer.Flush();
             Console.WriteLine("[TerraIRC] IRC Raw: " + text);
         }
-        public static void command(string cmd)
-        {
-            string[] cmdarray = cmd.Split(' ');
-            Player p;
-            int pna = 0;
-            foreach (Player pl in Main.player)
-            {
-                if (pl.name.Length < 1)
-                {
-
-                    pna = pl.whoAmi;
-                    break;
-                }
-            }
-            p = Main.player[pna];
-            p.name = "Console";
-            CommandEvent commandevent = new CommandEvent(cmdarray, p);
-            commandevent = null;
-        }
+        
         public static void connect(string server, int port, string authtype, string authpass, string nick, string user, string channel)
         {
             char meme;
@@ -200,7 +182,7 @@ namespace TerraIRC
                 string[] users = user.Split(' ');
                 send("USER " + users[0] + " 0 * :" + user);
                 send("NICK " + nick);
-                
+
                 while (true)
                 {
                     while ((inputLine = reader.ReadLine()) != null)
@@ -219,10 +201,12 @@ namespace TerraIRC
                             {
                                 if (p.name.Length > 0)
                                 {
-                                    p.sendMessage("[IRC]<" + nickname + "> has joined IRC");
+                                    int ply = p.whoAmi;
+                                    string message = "[IRC] <" + nickname + "> has joined IRC";
+                                    NetMessage.SendData(0x19, ply, -1, message, 255, 0f, 255f, 0f);
                                 }
                             }
-                            
+
                         }
                         else if (inputLine.EndsWith("PART :" + channel))
                         {
@@ -232,7 +216,9 @@ namespace TerraIRC
                             {
                                 if (p.name.Length > 0)
                                 {
-                                    p.sendMessage("[IRC]<" + nickname + "> has left IRC");
+                                    int ply = p.whoAmi;
+                                    string message = "[IRC]<" + nickname + "> has left IRC";
+                                    NetMessage.SendData(0x19, ply, -1, message, 255, 0f, 255f, 0f);
                                 }
                             }
 
@@ -254,8 +240,10 @@ namespace TerraIRC
                                 {
                                     if (p.name.Length > 0)
                                     {
-                                        string message = "[IRC]<" + nickname + "> " + match.Groups[3].Value;
-                                        p.sendMessage(message.Replace(meme, '*'));
+                                        string ircMsg = "[IRC]<" + nickname + "> " + match.Groups[3].Value;
+                                        int ply = p.whoAmi;
+                                        string message = ircMsg.Replace(meme, '*');
+                                        NetMessage.SendData(0x19, ply, -1, message, 255, 0f, 255f, 0f);
                                     }
                                 }
 
@@ -279,5 +267,5 @@ namespace TerraIRC
             }
         }
     }
-    
+
 }
