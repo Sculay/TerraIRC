@@ -236,7 +236,7 @@ namespace TerraIRC
                                 if (p.name.Length > 0)
                                 {
                                     int ply = p.whoAmi;
-                                    string message = "[IRC]<" + nickname + "> has left IRC";
+                                    string message = "[IRC] <" + nickname + "> has left IRC";
                                     NetMessage.SendData(0x19, ply, -1, message, 255, 0f, 255f, 0f);
                                 }
                             }
@@ -255,30 +255,39 @@ namespace TerraIRC
                                 //get nick
                                 nickname = inputLine.Substring(1, inputLine.IndexOf("!") - 1);
 
-                                if (match.Groups[3].Value == TerraIRC.commandPrefix + "players")
+                                if (match.Groups[3].Value.StartsWith(TerraIRC.commandPrefix))
                                 {
-                                    string str = "";
-                                    foreach (Player pActive in Main.player)
+                                    string command = match.Groups[3].Value.Remove(0, 1).ToLower();
+
+                                    switch (command)
                                     {
-                                        if (pActive.active)
-                                        {
-                                            if (str == "")
+                                        case "players":
+                                            string str = "";
+                                            int pCount = 0;
+                                            foreach (Player pActive in Main.player)
                                             {
-                                                str = str + pActive.name;
+                                                if (pActive.active)
+                                                {
+                                                    pCount++;
+                                                    if (str == "")
+                                                    {
+                                                        str = str + pActive.name;
+                                                    }
+                                                    else
+                                                    {
+                                                        str = str + ", " + pActive.name;
+                                                    }
+                                                }
+                                            }
+                                            if (pCount == 0)
+                                            {
+                                                send("PRIVMSG " + channel + " :No one is Terrariaing right now.");
                                             }
                                             else
                                             {
-                                                str = str + ", " + pActive.name;
+                                                send("PRIVMSG " + channel + " :Current players: " + str);
                                             }
-                                        }
-                                    }
-                                    if (str == null)
-                                    {
-                                        send("PRIVMSG " + channel + " :No one is Terrariaing right now.");
-                                    }
-                                    else
-                                    {
-                                        send("PRIVMSG " + channel + " :Current players: " + str);
+                                                break;
                                     }
                                 }
                                 else
@@ -289,7 +298,7 @@ namespace TerraIRC
                                         {
                                             if (p.name.Length > 0)
                                             {
-                                                string ircMsg = "[IRC]<" + nickname + "> " + match.Groups[3].Value;
+                                                string ircMsg = "[IRC] <" + nickname + "> " + match.Groups[3].Value;
                                                 int ply = p.whoAmi;
                                                 string message = ircMsg.Replace(meme, '*');
                                                 NetMessage.SendData(0x19, ply, -1, message, 255, 0f, 255f, 0f);
