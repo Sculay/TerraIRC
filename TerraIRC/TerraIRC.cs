@@ -27,10 +27,13 @@ namespace TerraIRC
         public int port;
         public string authtype;
         public string authpass;
-        public string nickname;
+        public static string nickname;
         public string username;
         public string channel;
         private Thread irc;
+        public bool sendCommandsIRC;
+        public static bool rawConsole;
+        public static string commandPrefix;
 
         public override string Name
         {
@@ -87,7 +90,14 @@ namespace TerraIRC
         private void OnChat(messageBuffer msg, int ply, string text, HandledEventArgs e)
         {
             string p = Main.player[ply].name;
-            IRC.send("PRIVMSG " + channel + " :(" + p + ") " + text);
+            if (text.StartsWith("/"))
+            {
+                return;
+            }
+            else
+            {
+                IRC.send("PRIVMSG " + channel + " :(" + p + ") " + text);
+            }
         }
 
         //public override void onPlayerDeath(PlayerEvent ev)
@@ -124,6 +134,9 @@ namespace TerraIRC
                 writer.WriteLine("nickname=TerraIRC");
                 writer.WriteLine("username=Terraria IRC Bot");
                 writer.WriteLine("channel=#pwncraft");
+                //writer.WriteLine("send-commands-to-irc=true");
+                writer.WriteLine("raw-console=true");
+                writer.WriteLine("irc-prefix=!");
                 writer.Close();
             }
 
@@ -144,6 +157,9 @@ namespace TerraIRC
                 nickname = this.settings["nickname"];
                 username = this.settings["username"];
                 channel = this.settings["channel"];
+                //sendCommandsIRC = bool.Parse(this.settings["send-commands-to-irc"]);
+                rawConsole = bool.Parse(this.settings["raw-console"]);
+                commandPrefix = this.settings["irc-prefix"];
             }
             catch (NullReferenceException exception)
             {
@@ -160,7 +176,10 @@ namespace TerraIRC
         {
             writer.WriteLine(text);
             writer.Flush();
-            Console.WriteLine("[TerraIRC] IRC Raw: " + text);
+            if (TerraIRC.rawConsole == true)
+            {
+                Console.WriteLine("[TerraIRC] IRC Raw: " + text);
+            }
         }
         
         public static void connect(string server, int port, string authtype, string authpass, string nick, string user, string channel)
@@ -236,17 +255,48 @@ namespace TerraIRC
                                 //get nick
                                 nickname = inputLine.Substring(1, inputLine.IndexOf("!") - 1);
 
-                                foreach (Player p in Main.player)
+                                if (match.Groups[3].Value == TerraIRC.commandPrefix + "players")
                                 {
-                                    if (p.name.Length > 0)
+                                    string str = "";
+                                    foreach (Player pActive in Main.player)
                                     {
-                                        string ircMsg = "[IRC]<" + nickname + "> " + match.Groups[3].Value;
-                                        int ply = p.whoAmi;
-                                        string message = ircMsg.Replace(meme, '*');
-                                        NetMessage.SendData(0x19, ply, -1, message, 255, 0f, 255f, 0f);
+                                        if (pActive.active)
+                                        {
+                                            if (str == "")
+                                            {
+                                                str = str + pActive.name;
+                                            }
+                                            else
+                                            {
+                                                str = str + ", " + pActive.name;
+                                            }
+                                        }
+                                    }
+                                    if (str == null)
+                                    {
+                                        send("PRIVMSG " + channel + " :No one is Terrariaing right now.");
+                                    }
+                                    else
+                                    {
+                                        send("PRIVMSG " + channel + " :Current players: " + str);
                                     }
                                 }
-
+                                else
+                                {
+                                    if (nickname != TerraIRC.nickname)
+                                    {
+                                        foreach (Player p in Main.player)
+                                        {
+                                            if (p.name.Length > 0)
+                                            {
+                                                string ircMsg = "[IRC]<" + nickname + "> " + match.Groups[3].Value;
+                                                int ply = p.whoAmi;
+                                                string message = ircMsg.Replace(meme, '*');
+                                                NetMessage.SendData(0x19, ply, -1, message, 255, 0f, 255f, 0f);
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
