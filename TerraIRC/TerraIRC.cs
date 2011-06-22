@@ -12,10 +12,11 @@ using Microsoft.Xna.Framework.Content;
 using Terraria;
 using TerrariaAPI;
 using TerrariaAPI.Hooks;
+using System.ComponentModel;
 
 namespace TerraIRC
 {
-    [APIVersion(1, 3)]
+    [APIVersion(1, 5)]
     public class TerraIRC : TerrariaPlugin
     {
         // Settings
@@ -23,17 +24,19 @@ namespace TerraIRC
         public string settingsPath = "terrairc.txt";
 
         // IRC fields
-        public string server;
-        public int port;
-        public string authtype;
-        public string authpass;
+        public static string server;
+        public static int port;
+        public static string authtype;
+        public static string authpass;
         public static string nickname;
-        public string username;
-        public string channel;
+        public static string username;
+        public static string channel;
         private Thread irc;
         public bool sendCommandsIRC;
         public static bool rawConsole;
         public static string commandPrefix;
+        public static bool enableFingering;
+        public static string whitelistPath;
 
         public override string Name
         {
@@ -42,7 +45,7 @@ namespace TerraIRC
 
         public override Version Version
         {
-            get { return new Version(1, 0, 2); }
+            get { return new Version(1, 1); }
         }
 
         public override string Author
@@ -119,6 +122,24 @@ namespace TerraIRC
             IRC.send("PRIVMSG " + channel + " :[" + p + " disconnected]");
         }
 
+        protected string getSetting(string setting, string settingValue)
+        {
+            try
+            {
+                string ret = settings[setting];
+                return ret;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("[TerraIRC] Missing setting: " + setting);
+                TextWriter t = new StreamWriter(settingsPath, true);
+                t.WriteLine(setting + "=" + settingValue);
+                t.Close();
+                this.settings.Add(setting, settingValue);
+                return settingValue;
+            }
+        }
+
         public void loadSettings()
         {
             this.settings = new Dictionary<string, string>();
@@ -134,9 +155,9 @@ namespace TerraIRC
                 writer.WriteLine("nickname=TerraIRC");
                 writer.WriteLine("username=Terraria IRC Bot");
                 writer.WriteLine("channel=#pwncraft");
-                //writer.WriteLine("send-commands-to-irc=true");
                 writer.WriteLine("raw-console=true");
                 writer.WriteLine("irc-prefix=!");
+                writer.WriteLine("fingering=true");
                 writer.Close();
             }
 
@@ -150,16 +171,16 @@ namespace TerraIRC
             // IRC fields
             try
             {
-                server = this.settings["server"];
-                port = int.Parse(this.settings["port"]);
-                authtype = this.settings["authtype"];
-                authpass = this.settings["authpass"];
-                nickname = this.settings["nickname"];
-                username = this.settings["username"];
-                channel = this.settings["channel"];
-                //sendCommandsIRC = bool.Parse(this.settings["send-commands-to-irc"]);
-                rawConsole = bool.Parse(this.settings["raw-console"]);
-                commandPrefix = this.settings["irc-prefix"];
+                server = getSetting("server", "irc.pwncraft.net");
+                port = int.Parse(getSetting("port", "6667"));
+                authtype = getSetting("authtype", "x");
+                authpass = getSetting("authpass", "mypassword");
+                nickname = getSetting("nickname", "TerraIRC");
+                username = getSetting("username", "Terraria IRC Bot");
+                channel = getSetting("channel", "#pwncraft");
+                rawConsole = bool.Parse(getSetting("raw-console", "true"));
+                commandPrefix = getSetting("irc-prefix", "!");
+                enableFingering = bool.Parse(getSetting("fingering", "true"));
             }
             catch (NullReferenceException exception)
             {
@@ -170,7 +191,6 @@ namespace TerraIRC
     }
     public static class IRC
     {
-
         public static StreamWriter writer;
         public static void send(string text)
         {
@@ -258,35 +278,20 @@ namespace TerraIRC
                                 if (match.Groups[3].Value.StartsWith(TerraIRC.commandPrefix))
                                 {
                                     string command = match.Groups[3].Value.Remove(0, 1).ToLower();
+                                    string[] commandArray = match.Groups[3].Value.Split(' ');
 
                                     switch (command)
                                     {
                                         case "players":
-                                            string str = "";
-                                            int pCount = 0;
-                                            foreach (Player pActive in Main.player)
-                                            {
-                                                if (pActive.active)
-                                                {
-                                                    pCount++;
-                                                    if (str == "")
-                                                    {
-                                                        str = str + pActive.name;
-                                                    }
-                                                    else
-                                                    {
-                                                        str = str + ", " + pActive.name;
-                                                    }
-                                                }
-                                            }
-                                            if (pCount == 0)
-                                            {
-                                                send("PRIVMSG " + channel + " :No one is Terrariaing right now.");
-                                            }
-                                            else
-                                            {
-                                                send("PRIVMSG " + channel + " :Current players: " + str);
-                                            }
+                                            IRCCommands.Players();
+                                                break;
+
+                                        case "finger":
+                                            IRCCommands.Finger();
+                                                break;
+
+                                        case "whitelist":
+                                            IRCCommands.Whitelist(commandArray[1]);
                                                 break;
                                     }
                                 }
