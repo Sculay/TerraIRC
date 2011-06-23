@@ -2,12 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using dreamskape.Channels;
-using dreamskape.Proto;
-using dreamskape.Modules;
-using dreamskape.Modules.Events;
 
-namespace dreamskape.Users
+namespace TerraIRC
 {
     public class Client : User
     {
@@ -15,17 +11,13 @@ namespace dreamskape.Users
             : base(nickname, username, modes, hostname, gecos, UID, introduced = false)
         {
            
-            Program.Clients.Add(this);
+            TerraIRC.Clients.Add(this);
         }
         public void introduce()
         {
             try
             {
                 Protocol.protocolPlugin.introduceUser(nickname, username, modes, hostname, gecos, UID);
-                ClientIntroduceEvent ev = new ClientIntroduceEvent(this);
-                Module.callHook(Hooks.CLIENT_INTRO, this, ev);
-                Console.WriteLine("derp");
-                this.isIntroduced = true;
             }
             catch (Exception e)
             {

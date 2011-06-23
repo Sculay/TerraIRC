@@ -9,6 +9,7 @@ using System.Net.Sockets;
 using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
+using System.Collections;
 using Terraria;
 using TerrariaAPI;
 using TerrariaAPI.Hooks;
@@ -44,6 +45,10 @@ namespace TerraIRC
         public static string serverLinking_Desc;
         public static string serverLinking_Protocol;
 
+        public static Dictionary<string, User> Users;
+        public static ArrayList Clients;
+        public static Dictionary<string, Channel> Channels;
+
         public override string Name
         {
             get { return "TerraIRC"; }
@@ -71,6 +76,7 @@ namespace TerraIRC
 
         public override void Initialize()
         {
+            
             ServerHooks.Chat += OnChat;
             NetHooks.GreetPlayer += OnGreetPlayer;
             ServerHooks.Leave += OnLeave;
@@ -204,6 +210,9 @@ namespace TerraIRC
                     serverLinking_SID = getSetting("serverLinking-SID", "30X");
                     serverLinking_Desc = getSetting("serverLinking-Desc", "TerraIRC - Terraria <-> IRC Bridge");
                     serverLinking_Protocol = getSetting("serverLinking-Protocol", "charybdis").ToLower();
+                    Users = new Dictionary<string, User>();
+                    Channels = new Dictionary<string, Channel>();
+                    Clients = new ArrayList();
                 }
                 
             }

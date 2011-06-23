@@ -17,7 +17,7 @@ namespace TerraIRC
             try
             {
                 Console.WriteLine("Loading protocol modules..");
-                foreach (string str in Directory.GetFiles(@"protocol\"))
+                foreach (string str in Directory.GetFiles(@"serverplugins\protocols\"))
                 {
                     FileInfo info = new FileInfo(str);
                     if (info.Name.ToLower() == TerraIRC.serverLinking_Protocol.Split('.')[0])

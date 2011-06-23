@@ -32,20 +32,20 @@ namespace TerraIRC
         }
         public User getUserFromUID(string UID)
         {
-            if (Program.Users.ContainsKey(UID))
+            if (TerraIRC.Users.ContainsKey(UID))
             {
                 User user;
-                Program.Users.TryGetValue(UID, out user);
+                TerraIRC.Users.TryGetValue(UID, out user);
                 return user;
             }
             return null;
         }
         public Channel getChannelFromName(string channel)
         {
-            if (Program.Channels.ContainsKey(channel.ToLower()))
+            if (TerraIRC.Channels.ContainsKey(channel.ToLower()))
             {
                 Channel chan;
-                Program.Channels.TryGetValue(channel.ToLower(), out chan);
+                TerraIRC.Channels.TryGetValue(channel.ToLower(), out chan);
                 return chan;
             }
             return null;

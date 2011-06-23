@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
 using System.Text;
-using dreamskape.Users;
-using dreamskape.Proto;
 
-namespace dreamskape.Channels
+namespace TerraIRC
 {
     public class Channel
     {
@@ -17,7 +15,7 @@ namespace dreamskape.Channels
         {
             this.name = name;
             Users = new Dictionary<string, User>();
-            Program.Channels.Add(name.ToLower(), this);
+            TerraIRC.Channels.Add(name.ToLower(), this);
         }
         public void addToChannel(User user)
         {

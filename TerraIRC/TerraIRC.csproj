@@ -51,9 +51,29 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Channel\Channel.cs" />
+    <Compile Include="Modules\Events\ChannelLogEvent.cs" />
+    <Compile Include="Modules\Events\ChannelMessageEvent.cs" />
+    <Compile Include="Modules\Events\ClientIntroduceEvent.cs" />
+    <Compile Include="Modules\Events\Event.cs" />
+    <Compile Include="Modules\Events\KickEvent.cs" />
+    <Compile Include="Modules\Events\KillEvent.cs" />
+    <Compile Include="Modules\Events\UserConnectEvent.cs" />
+    <Compile Include="Modules\Events\UserMessageEvent.cs" />
+    <Compile Include="Modules\Events\UserNickChangeEvent.cs" />
+    <Compile Include="Modules\Hooks.cs" />
+    <Compile Include="Modules\ModuleManager.cs" />
+    <Compile Include="Modules\ModulePlugin.cs" />
+    <Compile Include="User\Client.cs" />
     <Compile Include="IRCCommands.cs" />
+    <Compile Include="Protocol\ProtocolManager.cs" />
+    <Compile Include="Protocol\ProtocolPlugin.cs" />
     <Compile Include="TerraIRC.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="User\User.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

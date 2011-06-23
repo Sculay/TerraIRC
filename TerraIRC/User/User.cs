@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using dreamskape.Proto;
-using dreamskape.Channels;
 
-namespace dreamskape.Users
+namespace TerraIRC
 {
     public class User
     {
@@ -26,7 +24,7 @@ namespace dreamskape.Users
             this.modes = modes;
             this.UID = UID;
             Console.WriteLine("=== " + UID); 
-            Program.Users.Add(UID, this);
+            TerraIRC.Users.Add(UID, this);
             this.isIntroduced = introduced;
         }
         
