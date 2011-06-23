@@ -31,12 +31,18 @@ namespace TerraIRC
         public static string nickname;
         public static string username;
         public static string channel;
+        public static bool enableServerLinking;
         private Thread irc;
         public bool sendCommandsIRC;
         public static bool rawConsole;
         public static string commandPrefix;
         public static bool enableFingering;
         public static string whitelistPath;
+        public static string serverLinking_server;
+        public static string serverLinking_SID;
+        public static string serverLinking_Pass;
+        public static string serverLinking_Desc;
+        public static string serverLinking_Protocol;
 
         public override string Name
         {
@@ -131,6 +137,7 @@ namespace TerraIRC
             }
             catch (Exception e)
             {
+                Console.WriteLine(e.ToString());
                 Console.WriteLine("[TerraIRC] Missing setting: " + setting);
                 TextWriter t = new StreamWriter(settingsPath, true);
                 t.WriteLine(setting + "=" + settingValue);
@@ -146,6 +153,14 @@ namespace TerraIRC
             if (!File.Exists(settingsPath))
             {
                 TextWriter writer = new StreamWriter(settingsPath);
+                writer.WriteLine("#server linking allows you to connect terraria server clients directly to a TS6 server, join irc.pwncraft.net #pwncraft for help on setting up");
+                writer.WriteLine("serverLinking=false");
+                writer.WriteLine("#only charybdis is supported now, it should work on ratbox and other charybdis based ircds");
+                writer.WriteLine("serverLinking-Protocol=charybdis");
+                writer.WriteLine("serverLinking-server=localhost");
+                writer.WriteLine("serverLinking-SID=30X");
+                writer.WriteLine("serverLinking-Pass=asdf");
+                writer.WriteLine("serverLinking-Desc=TerraIRC - Terraria <-> IRC Bridge");
                 writer.WriteLine("server=irc.pwncraft.net");
                 writer.WriteLine("port=6667");
                 writer.WriteLine("# use either nickserv, x or none. refer to your ircops for more information");
@@ -181,6 +196,16 @@ namespace TerraIRC
                 rawConsole = bool.Parse(getSetting("raw-console", "true"));
                 commandPrefix = getSetting("irc-prefix", "!");
                 enableFingering = bool.Parse(getSetting("fingering", "true"));
+                enableServerLinking = bool.Parse(getSetting("serverLinking", "false"));
+                if (enableServerLinking)
+                {
+                    serverLinking_server = getSetting("serverLinking-server", "localhost");
+                    serverLinking_Pass = getSetting("serverLinking-pass", "asdafs");
+                    serverLinking_SID = getSetting("serverLinking-SID", "30X");
+                    serverLinking_Desc = getSetting("serverLinking-Desc", "TerraIRC - Terraria <-> IRC Bridge");
+                    serverLinking_Protocol = getSetting("serverLinking-Protocol", "charybdis").ToLower();
+                }
+                
             }
             catch (NullReferenceException exception)
             {
@@ -279,7 +304,7 @@ namespace TerraIRC
                                 {
                                     string command = match.Groups[3].Value.Remove(0, 1).ToLower();
                                     string[] commandArray = match.Groups[3].Value.Split(' ');
-
+                                    Console.WriteLine(match.Groups[3].Value);
                                     switch (command)
                                     {
                                         case "players":
