@@ -37,7 +37,6 @@ namespace TerraIRC
         public virtual void onClientKill(KillEvent ev) { }
         public virtual void onUserConnect(UserEvent ev) { }
         public virtual void onUserNickChange(UserNickChangeEvent ev) { }
-        public virtual void onUserIdentify(UserEvent ev) { }
         public virtual void onChannelLog(ChannelLogEvent ev) { }
         public virtual void onClientIntroduce(ClientIntroduceEvent ev) { }
         public virtual void onServerBurst() { }

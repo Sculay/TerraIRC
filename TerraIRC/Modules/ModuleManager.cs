@@ -17,7 +17,7 @@ namespace TerraIRC
             try
             {
                 Console.WriteLine("Loading modules..");
-                foreach (string str in Directory.GetFiles(@"modules\"))
+                foreach (string str in Directory.GetFiles(@"serverplugins\modules\"))
                 {
                     FileInfo info = new FileInfo(str);
                     if (info.Name.EndsWith(".dll"))
@@ -111,12 +111,7 @@ namespace TerraIRC
                                     }
                                     break;
                                 }
-                            case Hooks.USER_IDENTIFY:
-                                {
-                                    UserEvent me = (UserEvent)ev;
-                                    module.onUserIdentify(me);
-                                    break;
-                                }
+
                             case Hooks.CHANNEL_LOG:
                                 {
                                     ChannelLogEvent me = (ChannelLogEvent)ev;
