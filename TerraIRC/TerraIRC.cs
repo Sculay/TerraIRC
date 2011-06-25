@@ -56,7 +56,7 @@ namespace TerraIRC
 
         public override Version Version
         {
-            get { return new Version(1, 1); }
+            get { return new Version(1, 2); }
         }
 
         public override string Author
@@ -153,7 +153,7 @@ namespace TerraIRC
             }
         }
 
-        public void loadSettings()
+        public static void loadSettings()
         {
             this.settings = new Dictionary<string, string>();
             if (!File.Exists(settingsPath))
@@ -276,7 +276,9 @@ namespace TerraIRC
                                 {
                                     int ply = p.whoAmi;
                                     string message = "[IRC] <" + nickname + "> has joined IRC";
-                                    NetMessage.SendData(0x19, ply, -1, message, 255, 0f, 255f, 0f);
+                                    // pre 1.05
+                                    // NetMessage.SendData(0x19, ply, -1, message, 255, 0f, 255f, 0f);
+                                    NetMessage.SendData((int)PacketTypes.ChatText, ply, -1, message, 255, 0f, 255f, 0f);
                                 }
                             }
 
@@ -291,7 +293,9 @@ namespace TerraIRC
                                 {
                                     int ply = p.whoAmi;
                                     string message = "[IRC] <" + nickname + "> has left IRC";
-                                    NetMessage.SendData(0x19, ply, -1, message, 255, 0f, 255f, 0f);
+                                    // pre 1.05
+                                    // NetMessage.SendData(0x19, ply, -1, message, 255, 0f, 255f, 0f);
+                                    NetMessage.SendData((int)PacketTypes.ChatText, ply, -1, message, 255, 0f, 255f, 0f);
                                 }
                             }
 
@@ -324,8 +328,12 @@ namespace TerraIRC
                                             IRCCommands.Finger();
                                                 break;
 
-                                        case "whitelist":
-                                            IRCCommands.Whitelist(commandArray[1]);
+                                        //case "whitelist":
+                                        //    IRCCommands.Whitelist(commandArray[1]);
+                                        //        break;
+
+                                        case "terrairc":
+                                                IRCCommands.reloadSettings();
                                                 break;
                                     }
                                 }
@@ -340,7 +348,9 @@ namespace TerraIRC
                                                 string ircMsg = "[IRC] <" + nickname + "> " + match.Groups[3].Value;
                                                 int ply = p.whoAmi;
                                                 string message = ircMsg.Replace(meme, '*');
-                                                NetMessage.SendData(0x19, ply, -1, message, 255, 0f, 255f, 0f);
+                                                // pre 1.05
+                                                // NetMessage.SendData(0x19, ply, -1, message, 255, 0f, 255f, 0f);
+                                                NetMessage.SendData((int)PacketTypes.ChatText, ply, -1, message, 255, 0f, 255f, 0f);
                                             }
                                         }
                                     }
@@ -365,5 +375,4 @@ namespace TerraIRC
             }
         }
     }
-
 }

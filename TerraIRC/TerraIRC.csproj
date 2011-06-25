@@ -43,11 +43,11 @@
     <Reference Include="TerrariaServer, Version=1.0.4.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <ExecutableExtension>.exe</ExecutableExtension>
-      <HintPath>..\..\..\Downloads\Files\TShock\TerrariaServer.exe</HintPath>
+      <HintPath>..\..\..\Terraria\TShock\TerrariaServer.exe</HintPath>
     </Reference>
     <Reference Include="TerrariaServerAPI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Downloads\Files\TShock\TerrariaServerAPI.dll</HintPath>
+      <HintPath>..\..\..\Terraria\TShock\TerrariaServerAPI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

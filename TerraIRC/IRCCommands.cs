@@ -63,5 +63,10 @@ namespace TerraIRC
             tw.Close();
             IRC.send("PRIVMSG " + TerraIRC.channel + " :\"" + player + "\" added to the whitelist!");
         }
+
+        public static void reloadSettings()
+        {
+            TerraIRC.loadSettings();
+        }
     }
 }
