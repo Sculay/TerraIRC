@@ -328,10 +328,6 @@ namespace TerraIRC
                                             IRCCommands.Finger();
                                                 break;
 
-                                        //case "whitelist":
-                                        //    IRCCommands.Whitelist(commandArray[1]);
-                                        //        break;
-
                                         case "terrairc":
                                                 IRCCommands.reloadSettings();
                                                 break;
